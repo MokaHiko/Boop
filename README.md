@@ -7,7 +7,7 @@
 <u><b>1. Download the repo 
 </b></u>
 
-git clone --recursive https://github.com/MokaHiko/Mars.git.
+git clone --recursive https://github.com/MokaHiko/Boop.git.
 
 If the repository was cloned non-recursively previously, use git submodule update --init to clone the necessary submodules.
 
