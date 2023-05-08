@@ -21,14 +21,14 @@ bool convert_image(const std::filesystem::path& input, const std::filesystem::pa
 
 	int texture_size = width * height * 4;
 
-	boop::TextureInfo texutre_info = {};
-	texutre_info.format = boop::TextureFormat::RGBA8;
-	texutre_info.compression_mode = boop::CompressionMode::LZ4;
-	texutre_info.original_file_path = input.string();
-	texutre_info.pixel_size[0] = width;
-	texutre_info.pixel_size[1] = height;
-	texutre_info.texture_size = texture_size;
-	boop::AssetFile compressed_image = boop::pack_texture(&texutre_info, data);
+	boop::TextureInfo texture_info = {};
+	texture_info.format = boop::TextureFormat::RGBA8;
+	texture_info.compression_mode = boop::CompressionMode::LZ4;
+	texture_info.original_file_path = input.string();
+	texture_info.pixel_size[0] = width;
+	texture_info.pixel_size[1] = height;
+	texture_info.texture_size = texture_size;
+	boop::AssetFile compressed_image = boop::pack_texture(&texture_info, data);
 
 	stbi_image_free(data);
 	boop::save(output.string().c_str(), compressed_image);
@@ -39,24 +39,23 @@ bool convert_image(const std::filesystem::path& input, const std::filesystem::pa
 int main(int argc, char** argv)
 {
 	if(argc != 2) {
-		std::cout << "ERROR::Incorrect Usage: " << "boop_converter.exe <dir_path>\n";
+		std::cout << "ERROR::Incorrect Usage: " << "boop_converter.exe <assets_dir_path>\n";
 		return -1;
 	}
 
 	std::filesystem::path filePath{argv[1]};
 	std::filesystem::path directory = filePath;
 
-	for(auto& p : std::filesystem::directory_iterator(directory))
-	{
+	for(auto& p : std::filesystem::directory_iterator(directory)) {
 		std::cout << "converting:" << p.path().filename() << "...";
 		bool success = false;
 
-		if(p.path().extension() == ".png")
-		{
+		if(p.path().extension() == ".png") {
 			auto new_path = p.path();
 			new_path.replace_extension(".boop");
 			success = convert_image(p.path(), new_path);
 		}
+
 		std::cout << 
 		(success ? " success!" : " failed!") << 
 		std::endl;
