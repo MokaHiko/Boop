@@ -6,12 +6,14 @@ add_subdirectory(json)
 
 add_subdirectory(stb_image)
 add_subdirectory(lz4/build/cmake)
+add_subdirectory(tinyobjloader)
 
 add_library(${PROJECT_NAME} INTERFACE)
 target_link_libraries(${PROJECT_NAME} 
 					INTERFACE nlohmann_json::nlohmann_json
 					INTERFACE stb_image
 					INTERFACE lz4_static
+					INTERFACE tinyobjloader
 					)
 
 target_include_directories(${PROJECT_NAME} 

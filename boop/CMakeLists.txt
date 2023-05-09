@@ -6,10 +6,12 @@ project(boop)
 add_library(${PROJECT_NAME} STATIC
 	"boop.h"
 	"boop.cpp"
-	"common/texture.h"
-	"common/texture.cpp"
 	"common/asset.h"
 	"common/asset.cpp"
+	"common/texture.h"
+	"common/texture.cpp"
+	"common/mesh.h"
+	"common/mesh.cpp"
 )
 
 target_link_libraries(${PROJECT_NAME} PUBLIC vendor)

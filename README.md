@@ -1,11 +1,16 @@
 # Boop
 
-- file converter based on the asset system of vkguide.dev (https://vkguide.dev/docs/extra-chapter/asset_system/)
+- File converter based on the asset system of vkguide.dev (https://vkguide.dev/docs/extra-chapter/asset_system/)
+
+- Currently supported formats
+	* png
+	* obj
 
 ###  Quick Start
 
-<u><b>1. Download the repo 
-</b></u>
+<u>
+<b>1. Download the repo</b>
+</u>
 
 git clone --recursive https://github.com/MokaHiko/Boop.git.
 

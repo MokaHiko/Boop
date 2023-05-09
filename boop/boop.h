@@ -5,6 +5,7 @@
 
 #include "asset.h"
 #include "texture.h"
+#include "mesh.h"
 
 namespace boop
 {
