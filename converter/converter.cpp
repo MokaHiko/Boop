@@ -171,6 +171,12 @@ int main(int argc, char** argv)
 			success = convert_image(p.path(), new_path);
 		}
 
+		if (p.path().extension() == ".jpg") {
+			auto new_path = p.path();
+			new_path.replace_extension(".boop_jpg");
+			success = convert_image(p.path(), new_path);
+		}
+
 		if (p.path().extension() == ".obj") {
 			auto new_path = p.path();
 			new_path.replace_extension(".boop_obj");
