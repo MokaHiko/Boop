@@ -8,7 +8,6 @@
 #include "asset.h"
 
 namespace boop {
-
     // Vertex format all in f32
     struct Vertex_F32_PNCV {
         float position[3];
@@ -38,9 +37,11 @@ namespace boop {
         std::string original_file_path;
     };
 
-    MeshInfo read_mesh_info(AssetFile* file);
+    MeshInfo read_mesh_info(AssetFile *file);
 
-    void unpack_mesh(MeshInfo* info, const char* src_buffer, size_t src_size, char* vertex_buffer, char* index_buffer);
-    AssetFile pack_mesh(MeshInfo* info, char* vertex_buffer, char* index_buffer);
+    void pack_vertex(boop::Vertex_F32_PNCV &new_vert, real_t vx, real_t vy, real_t vz, real_t nx, real_t ny, real_t nz, real_t ux, real_t uy);
+
+    void unpack_mesh(MeshInfo *info, const char *src_buffer, size_t src_size, char *vertex_buffer, char *index_buffer);
+    AssetFile pack_mesh(MeshInfo *info, char *vertex_buffer, char *index_buffer);
 }
 #endif

@@ -5,6 +5,9 @@
 # Prerequisites
 *.d
 
+# Assets
+*.fbx
+
 # Compiled Object files
 *.slo
 *.lo

@@ -5,7 +5,6 @@
 
 namespace boop
 {
-
   VertexFormat parase_format(const char *f)
   {
     if (strcmp(f, "F32_PNCV") == 0)
@@ -13,6 +12,21 @@ namespace boop
     else
       return VertexFormat::Unknown;
   }
+
+  void boop::pack_vertex(boop::Vertex_F32_PNCV &new_vert, real_t vx, real_t vy, real_t vz, real_t nx, real_t ny, real_t nz, real_t ux, real_t uy)
+  {
+    new_vert.position[0] = vx;
+    new_vert.position[1] = vy;
+    new_vert.position[2] = vz;
+
+    new_vert.normal[0] = nx;
+    new_vert.normal[1] = ny;
+    new_vert.normal[2] = nz;
+
+    new_vert.uv[0] = ux;
+    new_vert.uv[1] = 1 - uy;
+  }
+
 
   MeshInfo read_mesh_info(AssetFile *file)
   {
@@ -34,8 +48,8 @@ namespace boop
   }
 
   void unpack_mesh(MeshInfo *info, const char *src_buffer,
-                   size_t src_size, char *vertex_buffer,
-                   char *index_buffer)
+    size_t src_size, char *vertex_buffer,
+    char *index_buffer)
   {
     // Create buffer to hold merged buffer
     std::vector<char> decompressed_buffer;
@@ -47,11 +61,11 @@ namespace boop
     memcpy(vertex_buffer, decompressed_buffer.data(), info->vertex_buffer_size);
 
     // Copy index buffer
-    memcpy(index_buffer,  decompressed_buffer.data() + info->vertex_buffer_size, info->index_buffer_size);
+    memcpy(index_buffer, decompressed_buffer.data() + info->vertex_buffer_size, info->index_buffer_size);
   }
 
   AssetFile pack_mesh(MeshInfo *info, char *vertex_buffer,
-                      char *index_buffer)
+    char *index_buffer)
   {
     AssetFile file = {};
 
@@ -87,21 +101,20 @@ namespace boop
     // Create buffer to copy and store both vertex and index buffer
     std::vector<char> merged_buffer;
     merged_buffer.resize(info->vertex_buffer_size +
-                         info->index_buffer_size);
+      info->index_buffer_size);
 
     memcpy(merged_buffer.data(), vertex_buffer, info->vertex_buffer_size);
     memcpy(merged_buffer.data() + info->vertex_buffer_size, index_buffer,
-           info->index_buffer_size);
+      info->index_buffer_size);
 
     // Resize file to compression bound
-    size_t compression_staging =
-        LZ4_compressBound(static_cast<uint32_t>(merged_buffer.size()));
+    size_t compression_staging = LZ4_compressBound(static_cast<uint32_t>(merged_buffer.size()));
     file.raw_data.resize(compression_staging);
 
-    int compressed_size =
+    int compressed_size = 
         LZ4_compress_default(merged_buffer.data(), file.raw_data.data(),
-                             static_cast<int>(merged_buffer.size()),
-                             static_cast<int>(compression_staging));
+        static_cast<int>(merged_buffer.size()),
+        static_cast<int>(compression_staging));
     file.raw_data.resize(compressed_size);
 
     return file;

@@ -8,6 +8,8 @@
 
 namespace boop
 {
+    typedef double real_t;
+
     struct AssetFile
     {
         char type[4];

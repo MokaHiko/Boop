@@ -1,0 +1,1 @@
+"{\"compression_mode\":\"LZ4\",\"index_buffer_size\":307332,\"original_file_path\":\"C:\\\\Users\\\\User\\\\Desktop\\\\Ass_ets\\\\DemoAssets\\\\Container.obj\",\"vertex_buffer_size\":3380652,\"vertex_format\":\"F32_PNCV\"}"
