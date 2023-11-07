@@ -5,6 +5,7 @@
 
 #include "asset.h"
 #include "mesh.h"
+#include "material.h"
 
 namespace boop {
     struct ModelMeshInfo
@@ -12,6 +13,9 @@ namespace boop {
         std::string mesh_name;
         uint64_t vertex_buffer_size;
         uint64_t index_buffer_size;
+
+        uint32_t material_index;
+        glm::mat4 global_model_matrix;
     };
 
     struct ModelInfo
@@ -19,10 +23,11 @@ namespace boop {
         uint64_t mesh_count;
         std::vector<ModelMeshInfo> mesh_infos;
 
+        uint64_t material_count;
+        std::vector<Material> materials;
+
         uint64_t vertex_buffer_size;
         uint64_t index_buffer_size;
-
-        // TODO: Material Buffer
 
         VertexFormat vertex_format;
         CompressionMode compression_mode;

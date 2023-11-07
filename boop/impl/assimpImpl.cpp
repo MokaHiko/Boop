@@ -1,4 +1,4 @@
-#include "AssimpImpl.h"
+#include "assimpImpl.h"
 #include "boop.h"
 
 #include <assimp/Importer.hpp>
@@ -7,19 +7,19 @@
 
 #include "model.h"
 
-bool boop::convert_mesh(const std::filesystem::path &input, const std::filesystem::path &output)
+bool boop::convert_mesh(const std::filesystem::path& input, const std::filesystem::path& output)
 {
 	return false;
 }
 
-bool boop::convert_model(const std::filesystem::path &input, const std::filesystem::path &output)
+bool boop::convert_model(const std::filesystem::path& input, const std::filesystem::path& output)
 {
 	using namespace Assimp;
 	Importer importer;
 	DefaultLogger::create("", Assimp::Logger::NORMAL);
-	DefaultLogger::get()->info("Assimp initalized");
+	DefaultLogger::get()->info("Assimp Initalized");
 
-	const aiScene *scene = importer.ReadFile(input.string(),
+	const aiScene* scene = importer.ReadFile(input.string(),
 		aiProcess_Triangulate |
 		aiProcess_GenSmoothNormals |
 		aiProcess_CalcTangentSpace |
@@ -34,7 +34,7 @@ bool boop::convert_model(const std::filesystem::path &input, const std::filesyst
 	}
 
 	auto start = std::chrono::high_resolution_clock::now();
-	AssimpLoader<Vertex_F32_PNCV> *model_loader = new AssimpLoader<Vertex_F32_PNCV>();
+	AssimpLoader<Vertex_F32_PNCV>* model_loader = new AssimpLoader<Vertex_F32_PNCV>();
 	model_loader->load_scene(scene);
 	auto end = std::chrono::high_resolution_clock::now();
 
@@ -44,6 +44,10 @@ bool boop::convert_model(const std::filesystem::path &input, const std::filesyst
 	ModelInfo info = {};
 	info.mesh_count = model_loader->mesh_count();
 	info.mesh_infos = model_loader->mesh_infos;
+
+	info.material_count = model_loader->material_count();
+	info.materials = model_loader->materials;
+
 	info.vertex_format = VertexFormat::F32_PNCV;
 	info.vertex_buffer_size = model_loader->vertex_count() * sizeof(Vertex_F32_PNCV);
 	info.index_buffer_size = model_loader->index_count() * sizeof(uint32_t);
@@ -54,9 +58,9 @@ bool boop::convert_model(const std::filesystem::path &input, const std::filesyst
 	try
 	{
 		start = std::chrono::high_resolution_clock::now();
-		boop::AssetFile compressed_model = pack_model(&info, 
-													 (char*)model_loader->vertex_data(), 
-													 (char*)model_loader->index_data());
+		boop::AssetFile compressed_model = pack_model(&info,
+			(char*)model_loader->vertex_data(),
+			(char*)model_loader->index_data());
 		end = std::chrono::high_resolution_clock::now();
 		diff = end - start;
 
@@ -66,7 +70,7 @@ bool boop::convert_model(const std::filesystem::path &input, const std::filesyst
 
 		return boop::save(output.string().c_str(), compressed_model);
 	}
-	catch(std::exception e)
+	catch (std::exception e)
 	{
 		DefaultLogger::get()->info(e.what());
 

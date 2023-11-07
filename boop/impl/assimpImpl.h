@@ -4,57 +4,72 @@
 #pragma once
 
 #include <assimp/scene.h>
+
+#include "boop.h"
 #include "../common/model.h"
+
+
+glm::mat4 AssimpToGLMMat4(const aiMatrix4x4& from)
+{
+    glm::mat4 to(1.0f);
+
+    //the a,b,c,d in assimp is the row ; the 1,2,3,4 is the column
+    to[0][0] = from.a1; to[1][0] = from.a2; to[2][0] = from.a3; to[3][0] = from.a4;
+    to[0][1] = from.b1; to[1][1] = from.b2; to[2][1] = from.b3; to[3][1] = from.b4;
+    to[0][2] = from.c1; to[1][2] = from.c2; to[2][2] = from.c3; to[3][2] = from.c4;
+    to[0][3] = from.d1; to[1][3] = from.d2; to[2][3] = from.d3; to[3][3] = from.d4;
+    return to;
+}
 
 template<typename VertexFormat>
 class AssimpLoader
 {
 public:
-    // Returns the number of indices in the loaded model
-    uint64_t index_count() const {return indices.size();}
+    uint64_t index_count() const { return indices.size(); }
+    uint64_t vertex_count() const { return vertices.size(); }
 
-    // Returns the number of vertices in the loaded model
-    uint64_t vertex_count() const {return vertices.size();}
+    uint64_t mesh_count() const { return mesh_infos.size(); }
+    uint64_t material_count() const { return materials.size(); }
 
-    // Returns the number of meshes in the loaded model
-    uint64_t mesh_count() const {return mesh_infos.size();}
+    VertexFormat* vertex_data() { return vertices.data(); }
+    uint32_t* index_data() { return indices.data(); }
 
-    VertexFormat* vertex_data() {return vertices.data();}
+    boop::Material* material_data() { return materials.data(); }
 
-    uint32_t* index_data() {return indices.data();}
+    std::vector<boop::ModelMeshInfo> mesh_infos = {};
+    std::vector<boop::Material> materials = {};
 
-    std::vector<boop::ModelMeshInfo> mesh_infos;
+    ~AssimpLoader() {}
 
-    ~AssimpLoader(){}
-
-    void load_scene(const aiScene *scene)
+    void load_scene(const aiScene* scene)
     {
         uint32_t mesh_count = scene->mNumMeshes;
         uint32_t material_count = scene->mNumMaterials;
 
-        process_node_recursive(scene->mRootNode, scene);
-    }
+        process_materials(scene);
 
+        const aiMatrix4x4 identity = {};
+        process_node_recursive(scene->mRootNode, identity, scene);
+    }
 private:
-    void process_node_recursive(aiNode *node, const aiScene *scene)
+    void process_node_recursive(aiNode* node, const aiMatrix4x4& parent_global_matrix, const aiScene* scene)
     {
         // Load Meshes
+        const aiMatrix4x4 global_node_model_matrix = node->mTransformation * parent_global_matrix;
         for (uint32_t i = 0; i < node->mNumMeshes; i++)
         {
-            aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
-            process_mesh(mesh, scene);
+            aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+            process_mesh(mesh, global_node_model_matrix, scene);
         }
-
-        // TODO: Load materials
 
         // Call for children
         for (uint32_t i = 0; i < node->mNumChildren; i++)
         {
-            process_node_recursive(node->mChildren[i], scene);
+            process_node_recursive(node->mChildren[i], global_node_model_matrix, scene);
         }
     }
 
-    void process_mesh(aiMesh *mesh, const aiScene *scene)
+    void process_mesh(aiMesh* mesh, const aiMatrix4x4& global_node_model_matrix, const aiScene* scene)
     {
         for (uint32_t i = 0; i < mesh->mNumVertices; i++)
         {
@@ -73,13 +88,13 @@ private:
             if (mesh->HasTextureCoords(0))
             {
                 aiVector3D uv = mesh->mTextureCoords[0][i];
-				vertex.uv[0] = uv.x;
-				vertex.uv[1] = uv.y;
+                vertex.uv[0] = uv.x;
+                vertex.uv[1] = uv.y;
             }
             else
             {
-				vertex.uv[0] = 0;
-				vertex.uv[1] = 0;
+                vertex.uv[0] = 0;
+                vertex.uv[1] = 0;
             }
 
             vertices.push_back(vertex);
@@ -96,14 +111,110 @@ private:
                 mesh_index_count++;
             }
         }
-		auto vertex_format_enum = boop::VertexFormat::F32_PNCV;
+        auto vertex_format_enum = boop::VertexFormat::F32_PNCV;
 
         boop::ModelMeshInfo mesh_info = {};
         mesh_info.vertex_buffer_size = mesh->mNumVertices * sizeof(VertexFormat);
         mesh_info.index_buffer_size = mesh_index_count * sizeof(uint32_t);
         mesh_info.mesh_name = mesh->mName.data;
+        mesh_info.global_model_matrix = AssimpToGLMMat4(global_node_model_matrix);
+        mesh_info.material_index = mesh->mMaterialIndex;
 
         mesh_infos.push_back(mesh_info);
+    }
+
+    void process_materials(const aiScene* scene)
+    {
+        for (uint32_t i = 0; i < scene->mNumMaterials; i++)
+        {
+            boop::Material bp_material = {};
+
+            const aiMaterial* material = scene->mMaterials[i];
+            auto path= std::filesystem::path(material->GetName().data);
+            path.replace_extension();
+            std::string name = path.string();
+
+            // Check if material name already taken
+            bool processed = false;
+            for (boop::Material& m : materials)
+            {
+                if (m.name.data() == name)
+                {
+                    processed = true;
+                    break;
+                }
+            }
+
+            if (processed)
+            {
+                std::string suff = "_" + std::to_string(i);
+                name = name + suff;
+            }
+
+            // Colors
+            aiColor3D ambient_color(1.0);
+            if (material->Get(AI_MATKEY_COLOR_AMBIENT, ambient_color) == AI_SUCCESS)
+            {
+                bp_material.ambient_color = { ambient_color.r, ambient_color.g, ambient_color.b };
+            }
+
+            aiColor3D diffuse_color(1.0);
+            if (material->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse_color) == AI_SUCCESS)
+            {
+                bp_material.diffuse_color = { diffuse_color.r, diffuse_color.g, diffuse_color.b };
+            }
+
+            aiColor3D specular_color(1.0);
+            if (material->Get(AI_MATKEY_COLOR_SPECULAR, specular_color) == AI_SUCCESS)
+            {
+                bp_material.specular_color = { specular_color.r, specular_color.g, specular_color.b };
+            }
+
+            // Textures
+            bp_material.diffuse_texture_path = convert_material_texture(material, aiTextureType_DIFFUSE, scene);
+            bp_material.specular_texture_path = convert_material_texture(material, aiTextureType_SPECULAR, scene);
+
+            bp_material.name = name;
+            materials.push_back(bp_material);
+        }
+    }
+
+private:
+    // Returns converted texture path
+    std::string convert_material_texture(const aiMaterial* material, aiTextureType type, const aiScene* scene)
+    {
+        if (material->GetTextureCount(type) <= 0)
+        {
+            return "";
+        }
+
+        aiString ai_path;
+        if (material->GetTexture(type, 0, &ai_path, NULL, NULL, NULL, NULL, NULL) == AI_SUCCESS)
+        {
+            const char* path = ai_path.data;
+            std::filesystem::path output_path = std::filesystem::path(path).filename();
+            output_path.replace_extension("bp");
+
+            const aiTexture* embedded_texture = scene->GetEmbeddedTexture(path);
+
+            if (embedded_texture)
+            {
+                uint32_t nChannels = 4;
+                int buffer_size = embedded_texture->mWidth;
+                if (!boop::convert_image(embedded_texture->pcData, buffer_size, std::filesystem::path(path), output_path))
+                {
+                    return "";
+                }
+            }
+            else
+            {
+                boop::convert_image(std::filesystem::path(path), output_path);
+            }
+
+            return output_path.string();
+        }
+
+        return "";
     }
 private:
     std::vector<VertexFormat> vertices;

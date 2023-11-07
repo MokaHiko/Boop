@@ -17,6 +17,8 @@ list(APPEND SOURCES
 	"common/mesh.cpp"
 	"common/model.h"
 	"common/model.cpp"
+	"common/material.h"
+	"common/material.cpp"
 )
 
 if(USE_ASIMP)

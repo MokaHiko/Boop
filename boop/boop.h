@@ -22,6 +22,9 @@ namespace boop
 
     // Outputs mesh into .boop asset file
     bool convert_image(const std::filesystem::path &input, const std::filesystem::path &output);
+    
+    // Outputs mesh into .boop asset file
+	bool convert_image(void* buffer, uint32_t buffer_size, const std::filesystem::path& input, const std::filesystem::path& output);
 
     // Saves a boop asset file
     bool save(const char *path, const AssetFile &file);

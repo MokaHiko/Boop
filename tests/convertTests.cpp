@@ -27,10 +27,11 @@ struct ConvertTest : public ::testing::Test
 
 	virtual void SetUp() override
 	{
-		_model_import_path = "Z:/Dev/Boop/tests/TestAssets/Room/Room.fbx";
-		_model_export_path = "Z:/Dev/Boop/tests/TestAssets/Room/Room.bp";
-		_pre_converted_model_path = "Z:/Dev/Boop/Tests/TestAssets/PreConverted/Room.bp";
-		
+		_model_import_path = "C:/Users/User/Desktop/Convert/Spaceship/millennium_falcon_battlefront.fbx";
+		_model_export_path = "C:/Users/User/Desktop/Convert/Spaceship/millennium_falcon_battlefront.bp";
+
+		//_pre_converted_model_path = "Z:/Dev/Boop/Tests/TestAssets/PreConverted/Room.bp";
+		_pre_converted_model_path = "C:/Users/User/Desktop/Convert/Spaceship/millennium_falcon_battlefront.bp";
 		_pre_converted_mesh_path = "Z:/Dev/Boop/Tests/TestAssets/PreConverted/container.bp";
 	}
 

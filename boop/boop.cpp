@@ -104,4 +104,33 @@ namespace boop
 
         return boop::save(output.string().c_str(), compressed_image);
     }
+
+	bool convert_image(void* buffer, uint32_t buffer_size, const std::filesystem::path& input, const std::filesystem::path& output)
+	{
+        int width, height, nChannels;
+
+        // Force rgba
+		stbi_uc* data = stbi_load_from_memory((const stbi_uc*)buffer, buffer_size, &width, &height, &nChannels, STBI_rgb_alpha);
+
+        if (!data)
+        {
+            return false;
+        }
+
+		// Texture may have been compressed
+		int texture_size = width * height * 4;
+
+        boop::TextureInfo texture_info = {};
+        texture_info.format = boop::TextureFormat::RGBA8;
+        texture_info.compression_mode = boop::CompressionMode::LZ4;
+        texture_info.original_file_path = input.string();
+        texture_info.pixel_size[0] = width;
+        texture_info.pixel_size[1] = height;
+        texture_info.texture_size = texture_size;
+        boop::AssetFile compressed_image = boop::pack_texture(&texture_info, data);
+
+        stbi_image_free(data);
+
+        return boop::save(output.string().c_str(), compressed_image);
+	}
 }
